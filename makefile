@@ -4,33 +4,27 @@ INPUT_JSON=/home/json/week.json
 SCALAC=scalac -classpath $(CLASSPATH)
 SCALA=scala -classpath .:$(CLASSPATH)
 
-all: hbaseactor
+all: HBaseActor
 
-run: runhbaseactor
+run: runHBaseActor
 
-hbaseactor: HBaseActor.class
+HBaseActor: HBaseActor.class
 
-runhbaseactor: hbaseactor 
+runHBaseActor: HBaseActor 
 	$(SCALA) HBaseActor $(INPUT_JSON)
 
-HBaseActor.class: HBaseActor.scala
-	$(SCALAC) HBaseActor.scala
+HBaseClient: HBaseClient.class 
 
-hbaseclient: HBaseClient.class 
-
-runhbaseclient: hbaseclient
+runHBaseClient: HBaseClient
 	$(SCALA) HBaseClient $(INPUT_JSON)
 
-HBaseClient.class: HBaseClient.scala
-	$(SCALAC) HBaseClient.scala
+HBaseRand: HBaseRand.class 
 
-hbaserand: HBaseRand.class 
-
-runhbaserand: hbaserand
+runHBaseRand: HBaseRand
 	$(SCALA) HBaseRand $(INPUT_JSON)
 
-HBaseRand.class: HBaseRand.scala
-	$(SCALAC) HBaseRand.scala
+%.class: %.scala
+	$(SCALAC) $<
 
 clean:
 	rm *.class
