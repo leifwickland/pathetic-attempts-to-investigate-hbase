@@ -12,8 +12,8 @@ import com.twitter.json.Json
 
 object HBaseClient {
   implicit def stringToByteArray(s: String): Array[Byte] = Bytes.toBytes(s)
-  implicit def DoubleToByteArray(d: Double): Array[Byte] = Bytes.toBytes(d)
-  implicit def BigDecimalToByteArray(b: BigDecimal): Array[Byte] = Bytes.toBytes(b.toDouble)
+  implicit def doubleToByteArray(d: Double): Array[Byte] = Bytes.toBytes(d)
+  implicit def bigDecimalToByteArray(b: BigDecimal): Array[Byte] = Bytes.toBytes(b.toDouble)
   type JsonObject = Map[Any,Any]
   val hbaseTimer = new Timer
   val jsonTimer = new Timer
