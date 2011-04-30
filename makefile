@@ -1,26 +1,30 @@
 CLASSPATH=/hadoop/hadoop-core-0.20.2-cdh3u0.jar:/hbase/hbase-0.90.1-cdh3u0.jar:/hadoop/lib/*:/hbase/lib/*:/scala-json/target/scala_2.8.1/json_2.8.1-2.1.6-SNAPSHOT.jar
 
-INPUT_JSON=/home/json/sample.json
+INPUT_JSON=/home/json/week.json
+SCALAC=scalac -classpath $(CLASSPATH)
+SCALA=scala -classpath .:$(CLASSPATH)
 
-all: hbaseactor
+all: HBaseActor
 
-run: runhbaseactor
+run: runHBaseActor
 
-hbaseactor: HBaseActor.class
+HBaseActor: HBaseActor.class
 
-runhbaseactor: hbaseactor 
-	scala -classpath .:$(CLASSPATH) HBaseActor $(INPUT_JSON)
+runHBaseActor: HBaseActor 
+	$(SCALA) HBaseActor $(INPUT_JSON)
 
-HBaseActor.class: HBaseActor.scala
-	scalac  -classpath $(CLASSPATH) HBaseActor.scala
+HBaseClient: HBaseClient.class 
 
-hbaseclient: HBaseClient.class 
+runHBaseClient: HBaseClient
+	$(SCALA) HBaseClient $(INPUT_JSON)
 
-runhbaseclient: hbaseclient
-	scala -classpath .:$(CLASSPATH) HBaseClient $(INPUT_JSON)
+HBaseRand: HBaseRand.class 
 
-HBaseClient.class: HBaseClient.scala
-	scalac  -classpath $(CLASSPATH) HBaseClient.scala
+runHBaseRand: HBaseRand
+	$(SCALA) HBaseRand $(INPUT_JSON)
+
+%.class: %.scala
+	$(SCALAC) $<
 
 clean:
 	rm *.class

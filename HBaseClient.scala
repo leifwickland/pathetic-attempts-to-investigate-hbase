@@ -60,6 +60,7 @@ object HBaseClient {
 
   def createRowFor(line: String, table: HTable, columnFamilyName : String) {
     jsonTimer.go
+    try {
     val tweet = Json.parse(line.trim).asInstanceOf[JsonObject]
     jsonTimer.stop
     val put = new Put(getStringFromJson(tweet, Queue("id_str")))
@@ -78,6 +79,9 @@ object HBaseClient {
     hbaseTimer.go
     table.put(put)
     hbaseTimer.stop
+    } catch { 
+      case e: Exception => println("Got exception when trying to put " + line + "\n  Error: " + e);
+    }
   }
 
   def extractCoordinatesFrom(tweet : JsonObject) : List[BigDecimal] = {
