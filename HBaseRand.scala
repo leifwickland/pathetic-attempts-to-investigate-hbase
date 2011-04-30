@@ -17,6 +17,7 @@ object HBaseRand {
   type JsonObject = Map[Any,Any]
   val hbaseTimer = new Timer
   val jsonTimer = new Timer
+  val totalTimer = new Timer
 
   def printExists(path : String) {
     println("path " + path + " exists " + new java.io.File(path).exists.toString);
@@ -31,30 +32,44 @@ object HBaseRand {
 
     if (!doesTableExist(admin, tableName)) createTable(admin, tableName, columnFamilyName)
     
-    val table = new HTable(config, tableName)
+    val numberOfPuts = 0.5e6.toInt
+    val threadCount = 16
+    val threads = (1 to threadCount) map(i => {
+      new Thread {
+        override def run() {
+          println("Starting thread " + i)
+          val table = new HTable(config, tableName)
 
-    val random = new Random
-    timeIt(() => {
-      for (i <- 0 until 1000000) {
-        val put = new Put(i.toString)
+          val random = new Random
+          timeIt(() => {
+            for (j <- 0 until numberOfPuts) {
+              val put = new Put((i * numberOfPuts + j).toString)
 
-        val columns = Map(
-          "a" -> random.nextLong.toString,
-          "b" -> random.nextLong.toString,
-          "c" -> random.nextLong.toString,
-          "d" -> random.nextLong.toString,
-          "e" -> random.nextLong.toString
-        )
+              val columns = Map(
+                "a" -> (random.nextLong.toString() + random.nextLong.toString() + random.nextInt.toString())
+                //"b" -> random.nextLong.toString,
+                //"c" -> random.nextLong.toString,
+                //"d" -> random.nextLong.toString,
+                //"e" -> random.nextLong.toString
+              )
 
-        for (column <- columns) {
-          put.add(columnFamilyName, column._1, column._2)
+              for (column <- columns) {
+                put.add(columnFamilyName, column._1, column._2)
+              }
+              hbaseTimer.go
+              table.put(put)
+              hbaseTimer.stop
+            }
+          })
+          println("Total HBase time " + (hbaseTimer.getTotal / 1000.0) + " s for " + numberOfPuts + " puts")
         }
-        hbaseTimer.go
-        table.put(put)
-        hbaseTimer.stop
       }
     })
-    println("Total HBase Put time: " + (hbaseTimer.getTotal / 1000.0) + " s")
+    totalTimer.go
+    threads.foreach(t => t.start())
+    threads.foreach(t => t.join()) 
+    totalTimer.stop
+    println("Total time for " + (numberOfPuts * threadCount) + " puts on " + threadCount + " threads: " + (hbaseTimer.getTotal / 1000.0) + " s")
   }
 
   def timeIt[T](callback: () => T) {
