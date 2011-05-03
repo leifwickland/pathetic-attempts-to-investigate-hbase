@@ -13,15 +13,38 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.apache.hadoop.util.GenericOptionsParser
 import scala.collection.JavaConversions._
+import scala.collection.mutable.Queue
+
+import com.twitter.json.Json
 
 class TokenizerMapper extends Mapper[Object,Text,Text,IntWritable] {
+  implicit def hadoopTextToString(t: Text): String = t.toString
+  type JsonObject = Map[Any,Any]
   val one = new IntWritable(1)
   val word = new Text
 
   override def map(key: Object, value: Text, context: Mapper[Object,Text,Text,IntWritable]#Context) = {
-    for (t <- value.toString.split("\\s")) {
-      word.set(t)
+    //try {
+      val tweet = Json.parse(value).asInstanceOf[JsonObject]
+      word.set(getStringFromJson(tweet, Queue("user", "id_str")))
       context.write(word, one)
+    //} catch {
+      //case e: Exception => false // There's bad JSON in there.  Don't care.
+    //}
+  }
+
+  def getStringFromJson(json: JsonObject, keyPath: Queue[String]): String = {
+    getFromJson(json, keyPath).asInstanceOf[String]
+  }
+
+  def getFromJson(json: JsonObject, keyPath: Queue[String]): Any = {
+    val key = keyPath.dequeue
+    try {
+      val value = json(key)
+      if (keyPath.isEmpty) return value
+      return getFromJson(value.asInstanceOf[JsonObject], keyPath)
+    } catch {
+      case e: Exception => println("Got exception when trying to read " + key + " from " + json); return null;
     }
   }
 }
@@ -35,15 +58,11 @@ class IntSumReducer extends Reducer[Text,IntWritable,Text,IntWritable] {
 
 object countsByUser {
   def main(args: Array[String]) {
-    main2(args)
-  }
-
-  def main2(args: Array[String]): Int = {
     val conf = new Configuration()
     val otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs
     if (otherArgs.length != 2) {
       println("Usage: wordcount <in> <out>")
-      return 2
+      return
     }
     val job = new Job(conf, "counts by user")
     job.setJarByClass(classOf[TokenizerMapper])
@@ -54,6 +73,6 @@ object countsByUser {
     job.setOutputValueClass(classOf[IntWritable])
     FileInputFormat.addInputPath(job, new Path(args(0)))
     FileOutputFormat.setOutputPath(job, new Path((args(1))))
-    return if (job.waitForCompletion(true)) 0 else 1
+    job.waitForCompletion(true)
   }
 }

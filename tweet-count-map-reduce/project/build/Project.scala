@@ -15,6 +15,7 @@ class Project(info: ProjectInfo) extends DefaultProject(info) with ProguardProje
 
 
   val ScalaCheck = "org.scala-tools.testing" %% "scalacheck" % "1.8" % "test"
+  val json = "com.twitter" % "json" % "2.1.4"
 
   val ScalaTest = buildScalaVersion match {
     case "2.9.0.RC2" => "org.scalatest" % "scalatest" % "1.4.RC2" % "test"
