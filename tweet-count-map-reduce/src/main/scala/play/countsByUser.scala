@@ -24,13 +24,13 @@ class TokenizerMapper extends Mapper[Object,Text,Text,IntWritable] {
   val word = new Text
 
   override def map(key: Object, value: Text, context: Mapper[Object,Text,Text,IntWritable]#Context) = {
-    //try {
+    try {
       val tweet = Json.parse(value).asInstanceOf[JsonObject]
       word.set(getStringFromJson(tweet, Queue("user", "id_str")))
       context.write(word, one)
-    //} catch {
-      //case e: Exception => false // There's bad JSON in there.  Don't care.
-    //}
+    } catch {
+      case e: Exception => false // There's bad JSON in there.  Don't care.
+    }
   }
 
   def getStringFromJson(json: JsonObject, keyPath: Queue[String]): String = {
