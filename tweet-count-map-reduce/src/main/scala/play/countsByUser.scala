@@ -4,11 +4,9 @@ package play
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.io.IntWritable
-import org.apache.hadoop.io.Text
-import org.apache.hadoop.mapreduce.Job
-import org.apache.hadoop.mapreduce.Mapper
-import org.apache.hadoop.mapreduce.Reducer
+import org.apache.hadoop.io.{Text,IntWritable}
+import org.apache.hadoop.mapreduce.{Job,Mapper,Reducer}
+import org.apache.hadoop.mapreduce.lib.map.MultithreadedMapper
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.apache.hadoop.util.GenericOptionsParser
@@ -17,7 +15,7 @@ import scala.collection.mutable.Queue
 
 import com.twitter.json.Json
 
-class TokenizerMapper extends Mapper[Object,Text,Text,IntWritable] {
+class CountsByUserMapper extends Mapper[Object,Text,Text,IntWritable] {
   implicit def hadoopTextToString(t: Text): String = t.toString
   type JsonObject = Map[Any,Any]
   val one = new IntWritable(1)
@@ -65,8 +63,10 @@ object countsByUser {
       return
     }
     val job = new Job(conf, "counts by user")
-    job.setJarByClass(classOf[TokenizerMapper])
-    job.setMapperClass(classOf[TokenizerMapper])
+    job.setJarByClass(classOf[CountsByUserMapper])
+    job.setMapperClass(classOf[MultithreadedMapper[Object,Text,Text,IntWritable]])
+    MultithreadedMapper.setMapperClass(job, classOf[CountsByUserMapper])
+    MultithreadedMapper.setNumberOfThreads(job, 4)
     job.setCombinerClass(classOf[IntSumReducer])
     job.setReducerClass(classOf[IntSumReducer])
     job.setOutputKeyClass(classOf[Text])
