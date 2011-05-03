@@ -61,24 +61,24 @@ object HBaseClient {
   def createRowFor(line: String, table: HTable, columnFamilyName : String) {
     jsonTimer.go
     try {
-    val tweet = Json.parse(line.trim).asInstanceOf[JsonObject]
-    jsonTimer.stop
-    val put = new Put(getStringFromJson(tweet, Queue("id_str")))
+      val tweet = Json.parse(line.trim).asInstanceOf[JsonObject]
+      jsonTimer.stop
+      val put = new Put(getStringFromJson(tweet, Queue("id_str")))
 
-    val columns = Map(
-      "user_id" -> Queue("user", "id_str"),
-      "created_at" -> Queue("created_at"),
-      "text" -> Queue("text")
-    )
-    for (column <- columns) {
-      put.add(columnFamilyName, column._1, getStringFromJson(tweet, column._2))
-    }
-    val coordinates = extractCoordinatesFrom(tweet)
-    put.add(columnFamilyName, "longitude", coordinates(0))
-    put.add(columnFamilyName, "latitude", coordinates(1))
-    hbaseTimer.go
-    table.put(put)
-    hbaseTimer.stop
+      val columns = Map(
+        "user_id" -> Queue("user", "id_str"),
+        "created_at" -> Queue("created_at"),
+        "text" -> Queue("text")
+      )
+      for (column <- columns) {
+        put.add(columnFamilyName, column._1, getStringFromJson(tweet, column._2))
+      }
+      val coordinates = extractCoordinatesFrom(tweet)
+      put.add(columnFamilyName, "longitude", coordinates(0))
+      put.add(columnFamilyName, "latitude", coordinates(1))
+      hbaseTimer.go
+      table.put(put)
+      hbaseTimer.stop
     } catch { 
       case e: Exception => println("Got exception when trying to put " + line + "\n  Error: " + e);
     }
