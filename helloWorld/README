@@ -1,1 +1,1 @@
-I tried making scala-library.jar part of the class path of the resulting jar, but just as http://stackoverflow.com/questions/3026911/packaging-and-deploying-scala-applications said, it wouldn't work.
+I tried making scala-library.jar part of the class path of the resulting jar, but just as http://stackoverflow.com/questions/3026911/packaging-and-deploying-scala-applications said, it wouldn't work.  To make it work, I actually had to have scala-library sitting in the current directory when I executed java -jar helloworld.jar
