@@ -1,2 +1,7 @@
 *.class
 *.bak
+.*.sw*
+target/
+lib_managed/
+src_managed/
+project/boot/

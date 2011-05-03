@@ -1,0 +1,4 @@
+#External Dependencies
+#Tue May 03 10:18:47 MDT 2011
+/home/src/scala/helloWorld/project/boot/scala-2.7.7/org.scala-tools.sbt/sbt/0.7.6.RC0/sbt_2.7.7-0.7.6.RC0.jar=Project.scala
+/home/src/scala/helloWorld/project/boot/scala-2.7.7/lib/scala-library.jar=Project.scala
