@@ -44,7 +44,7 @@ class TweetsToHbaseMapper extends Mapper[Object,Text,NullWritable,Writable] {
   def getFromJson(json: JsonObject, keyPath: Queue[String]): Any = {
     val key = keyPath.dequeue
     try {
-      val value = json(key)
+      val value = json(key)  
       if (keyPath.isEmpty) return value
       return getFromJson(value.asInstanceOf[JsonObject], keyPath)
     } catch {

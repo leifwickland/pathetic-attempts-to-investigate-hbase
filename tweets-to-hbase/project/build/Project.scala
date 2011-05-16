@@ -1,8 +1,7 @@
 import sbt._
 import java.util.jar.Attributes.Name._
 
-
-class Project(info: ProjectInfo) extends DefaultProject(info) with ProguardProject {
+class Project(info: ProjectInfo) extends DefaultProject(info) with ProguardProject with de.tuxed.codefellow.plugin.CodeFellowPlugin {
   // 
   // repositories
   //
