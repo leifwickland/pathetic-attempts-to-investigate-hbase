@@ -91,10 +91,18 @@ object tweetsToCouch {
                        tweetsWritten +=1
                        conflicts += c
                   }
-                case x: Any => "I got " + x + " when I was expecting Some(tweet)"
+                case x: Any => println("I got " + x + " when I was expecting Some(tweet)")
               }
             }
             printf("Wrote %d tweets. Skipped duplicate %d tweets. Had %d conflicts.\n", tweetsWritten, duplicates, conflicts)
+            printf("Performed %d gets in %d millis, an average of %1.1f.\n", millisWaitingOnGets.length, millisWaitingOnGets.sum, millisWaitingOnGets.sum.toDouble/millisWaitingOnGets.length)
+            val sortedWaits = millisWaitingOnGets.sorted
+            assert(sortedWaits.length == millisWaitingOnGets.length)
+            assert(sortedWaits.length > 0)
+            def percentilePrinter(percentile: Double) = printf("Read percentile %1.1f: %d ms\n", percentile * 100.0, sortedWaits(math.min(sortedWaits.length - 1, (sortedWaits.length * percentile).toInt))) 
+            0.0.to(0.9, 0.05).foreach(percentilePrinter)
+            0.95.to(0.99, 0.01).foreach(percentilePrinter)
+            List(.995, .999).foreach(percentilePrinter)
           }
           finally {
             jsonReader ! ("unsubscribe", tweetsWritten, duplicates, conflicts)
@@ -120,7 +128,9 @@ object tweetsToCouch {
         }
         0.to(5).foreach{retry => 
           try {
+            val before = System.currentTimeMillis
             user = db.get(classOf[JsonNode], userId).asInstanceOf[ObjectNode]
+            millisWaitingOnGets += (System.currentTimeMillis - before)
             user.path("tweets").asInstanceOf[ObjectNode].put(id, tweet)
             db.update(user)
             return Some(retry)
@@ -130,6 +140,7 @@ object tweetsToCouch {
         }
         return None
       }
+      val millisWaitingOnGets = collection.mutable.ArrayBuffer[Long]()
     }
   }
 
